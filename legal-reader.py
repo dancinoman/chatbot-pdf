@@ -1,6 +1,6 @@
-from langchain.chat_models import ChatAnthropic, ChatOpenAI
-from langchain import PromptTemplate, LLMChain, HuggingFaceHub
-from langchain.prompts.chat import (
+from langchain_community.chat_models import ChatAnthropic, ChatOpenAI
+from langchain.chains import LLMChain
+from langchain_core.prompts.chat import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
     AIMessagePromptTemplate,
@@ -27,7 +27,7 @@ class LegalExpert:
         )
 
         # falcon model
-        model_name = "tiiuae/falcon-7b-instruct"
+        model_name = "tiiuae/falcon-11B"
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.falcon_llm = pipeline("text-generation",
                                    model=model_name,
