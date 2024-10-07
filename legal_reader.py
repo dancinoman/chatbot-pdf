@@ -78,10 +78,10 @@ def retrieve_pdf_text(pdf_file):
 
 # create a streamlit app
 st.title("Document Explainer (that does not give advice)")
-"""
+
 if "LegalExpert" not in st.session_state:
     st.session_state.LegalExpert = LegalExpert()
-
+"""
 # create a upload file widget for a pdf
 pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
