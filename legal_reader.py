@@ -75,10 +75,10 @@ def retrieve_pdf_text(pdf_file):
         text += page.extract_text()
     return text
 
-"""
+
 # create a streamlit app
 st.title("Document Explainer (that does not give advice)")
-
+"""
 if "LegalExpert" not in st.session_state:
     st.session_state.LegalExpert = LegalExpert()
 
