@@ -78,7 +78,7 @@ def retrieve_pdf_text(pdf_file):
 
 # create a streamlit app
 st.title("Document Explainer (that does not give advice)")
-
+"""
 if "LegalExpert" not in st.session_state:
     st.session_state.LegalExpert = LegalExpert()
 """
@@ -120,4 +120,3 @@ if "context" in st.session_state:
 # display the response
 if "legal_response" in st.session_state:
     st.write(st.session_state.legal_response)
-"""
