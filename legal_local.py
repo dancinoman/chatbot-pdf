@@ -1,5 +1,6 @@
-from langchain_community.chat_models import ChatAnthropic, ChatOpenAI
-from langchain.chains import LLMChain
+#from langchain_community.chat_models import ChatAnthropic, ChatOpenAI
+from langchain_openai import ChatOpenAI
+from langchain.chains import llm
 from langchain_core.prompts.chat import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
@@ -26,9 +27,10 @@ class LegalExpert:
             [self.system_prompt, self.user_prompt]
         )
 
+
         # falcon model
         model_name = "tiiuae/falcon-11B"
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, load_in_4bit=True)
         self.falcon_llm = pipeline("text-generation",
                                    model=model_name,
                                    tokenizer=tokenizer,
@@ -36,16 +38,19 @@ class LegalExpert:
                                    trust_remote_code=True,
                                    device_map="auto")
 
-
+        print(f'Model {model_name} is set.')
         # create llm pipeline for model
-        model_name = "google/flan-t5-xl"
+        #model_name = "google/flan-t5-xl"
 
-        self.huggingface_llm = pipeline("text-generation", model=model_name, tokenizer=AutoTokenizer.from_pretrained(model_name))
+        self.huggingface_llm = pipeline("text-generation", model=model_name, tokenizer=tokenizer, device_map='auto')
+        print('Hugging face pipeline set.')
+        #self.openai_gpt4_llm = ChatOpenAI(temperature=0, max_tokens=256)
+        #self.chat = ChatAnthropic()
 
-        self.openai_gpt4_llm = ChatOpenAI(temperature=0, max_tokens=256)
-        # self.chat = ChatAnthropic()
+        self.chain = full_prompt_template | self.huggingface_llm
 
-        self.chain = LLMChain(llm=self.huggingface_llm, prompt=full_prompt_template)
+
+        #self.chain = llm.LLMChain(llm=self.huggingface_llm, prompt=full_prompt_template)
 
     def get_system_prompt(self):
         system_prompt = """
@@ -63,7 +68,7 @@ class LegalExpert:
         return SystemMessagePromptTemplate.from_template(system_prompt)
 
     def run_chain(self, language, context, question):
-        return self.chain.run(
+        return self.chain.invoke(
             language=language, context=context, question=question
         )
 
@@ -78,7 +83,7 @@ def retrieve_pdf_text(pdf_file_loc):
 
 
 # create a streamlit app
-print("Document Explainer (that does not give advice)")
+print("Starting Document Explainer (that does not give advice)")
 
 machine_reader = LegalExpert()
 
