@@ -8,9 +8,9 @@ from langchain_core.prompts.chat import (
 )
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-import streamlit as st
 from dotenv import load_dotenv
 import PyPDF2
+from pdfquery import PDFQuery
 import torch
 
 load_dotenv()
@@ -67,57 +67,33 @@ class LegalExpert:
             language=language, context=context, question=question
         )
 
+pdf_file_loc = "Legal documentation/Contract_of_PurchaseSale.pdf"
 
-def retrieve_pdf_text(pdf_file):
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text()
-    return text
+def retrieve_pdf_text(pdf_file_loc):
+
+    pdf_file = PDFQuery("Legal documentation/Contract_of_PurchaseSale.pdf")
+    pdf_file.load()
+    text_elements = pdf_file.pq('LTTextLineHorizontal')
+    return [t.text for t in text_elements]
 
 
 # create a streamlit app
-st.title("Document Explainer (that does not give advice)")
+print("Document Explainer (that does not give advice)")
 
-if "LegalExpert" not in st.session_state:
-    st.session_state.LegalExpert = LegalExpert()
+machine_reader = LegalExpert()
 
 # create a upload file widget for a pdf
-pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
-st.session_state.context = None
-# if a pdf file is uploaded
-if pdf_file:
-    # retrieve the text from the pdf
-    if "context" not in st.session_state:
-        st.session_state.context = retrieve_pdf_text(pdf_file)
 
-# create a button that clears the context
-if st.button("Clear context"):
-    st.session_state.__delitem__("context")
-    st.session_state.__delitem__("legal_response")
+language = input("1.French/n2.English/n")
+question = input("Ask a question? ")
+run = input("Run?(Y/N)")
 
-# if there's context, proceed
-if "context" in st.session_state:
-    # create a dropdown widget for the language
-    language = st.selectbox("Language", ["English", "Français"])
-    # create a text input widget for a question
-    question = st.text_input("Ask a question")
-
-    # create a button to run the model
-    if st.button("Run"):
-        # run the model
-        legal_response = st.session_state.LegalExpert.run_chain(
-            language=language, context=st.session_state.context, question=question
-        )
-        print(f"legal_response: {legal_response}")
-        if "legal_response" not in st.session_state:
-            st.session_state.legal_response = legal_response
-
-        else:
-            st.session_state.legal_response = legal_response
-
-# display the response
-if "legal_response" in st.session_state:
-    st.write(st.session_state.legal_response)
-
+# Ask user to run
+if run == 'Y':
+    # run the model
+    legal_response = machine_reader.run_chain(
+        language=language, context=retrieve_pdf_text(pdf_file_loc), question=question
+    )
+    #Output the answer
+    print(f"legal_response: {legal_response}")
