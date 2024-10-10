@@ -61,7 +61,7 @@ class LegalExpert:
         """
 
         return SystemMessagePromptTemplate.from_template(system_prompt)
-
+        
     def run_chain(self, language, context, question):
         return self.chain.run(
             language=language, context=context, question=question
@@ -120,4 +120,3 @@ if "context" in st.session_state:
 # display the response
 if "legal_response" in st.session_state:
     st.write(st.session_state.legal_response)
-

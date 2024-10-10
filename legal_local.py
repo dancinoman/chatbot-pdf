@@ -30,7 +30,7 @@ class LegalExpert:
 
         # falcon model
         model_name = "tiiuae/falcon-11B"
-        tokenizer = AutoTokenizer.from_pretrained(model_name, load_in_4bit=True)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.falcon_llm = pipeline("text-generation",
                                    model=model_name,
                                    tokenizer=tokenizer,
@@ -42,13 +42,12 @@ class LegalExpert:
         # create llm pipeline for model
         #model_name = "google/flan-t5-xl"
 
-        self.huggingface_llm = pipeline("text-generation", model=model_name, tokenizer=tokenizer, device_map='auto')
-        print('Hugging face pipeline set.')
+        #self.huggingface_llm = pipeline("text-generation", model=model_name, tokenizer=tokenizer)
+        #print('Hugging face pipeline set.')
         #self.openai_gpt4_llm = ChatOpenAI(temperature=0, max_tokens=256)
         #self.chat = ChatAnthropic()
 
-        self.chain = full_prompt_template | self.huggingface_llm
-
+        self.chain = full_prompt_template | self.falcon_llm
 
         #self.chain = llm.LLMChain(llm=self.huggingface_llm, prompt=full_prompt_template)
 
@@ -69,7 +68,7 @@ class LegalExpert:
 
     def run_chain(self, language, context, question):
         return self.chain.invoke(
-            language=language, context=context, question=question
+            {'language':language, 'context':context, 'question':question}
         )
 
 pdf_file_loc = "Legal documentation/Contract_of_PurchaseSale.pdf"
@@ -79,7 +78,7 @@ def retrieve_pdf_text(pdf_file_loc):
     pdf_file = PDFQuery("Legal documentation/Contract_of_PurchaseSale.pdf")
     pdf_file.load()
     text_elements = pdf_file.pq('LTTextLineHorizontal')
-    return [t.text for t in text_elements]
+    return [t.text.strip() for t in text_elements if t.text != '']
 
 
 # create a streamlit app
@@ -90,15 +89,16 @@ machine_reader = LegalExpert()
 # create a upload file widget for a pdf
 
 
-language = input("1.French/n2.English/n")
-question = input("Ask a question? ")
-run = input("Run?(Y/N)")
+language = input("1.French\n2.English\n")
+#question = input("Ask a question? ")
+question = 'what is about the document?'
 
-# Ask user to run
-if run == 'Y':
-    # run the model
-    legal_response = machine_reader.run_chain(
-        language=language, context=retrieve_pdf_text(pdf_file_loc), question=question
-    )
-    #Output the answer
-    print(f"legal_response: {legal_response}")
+print(retrieve_pdf_text(pdf_file_loc))
+"""
+# run the model
+legal_response = machine_reader.run_chain(
+    language=language, context=retrieve_pdf_text(pdf_file_loc), question=question
+)
+#Output the answer
+print(f"legal_response: {legal_response}")
+"""
