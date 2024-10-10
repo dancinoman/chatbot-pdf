@@ -78,7 +78,7 @@ def retrieve_pdf_text(pdf_file_loc):
     pdf_file = PDFQuery("Legal documentation/Contract_of_PurchaseSale.pdf")
     pdf_file.load()
     text_elements = pdf_file.pq('LTTextLineHorizontal')
-    return [t.text.strip() for t in text_elements if t.text != '']
+    return [t.text for t in text_elements if t.text.strip() != '']
 
 
 # create a streamlit app
