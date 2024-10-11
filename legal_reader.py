@@ -61,7 +61,7 @@ class LegalExpert:
         """
 
         return SystemMessagePromptTemplate.from_template(system_prompt)
-        
+
     def run_chain(self, language, context, question):
         return self.chain.run(
             language=language, context=context, question=question

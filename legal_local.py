@@ -1,4 +1,3 @@
-#from langchain_community.chat_models import ChatAnthropic, ChatOpenAI
 from langchain_openai import ChatOpenAI
 from langchain.chains import llm
 from langchain_core.prompts.chat import (
@@ -19,14 +18,6 @@ load_dotenv()
 
 class LegalExpert:
     def __init__(self):
-        self.system_prompt = self.get_system_prompt()
-
-        self.user_prompt = HumanMessagePromptTemplate.from_template("{question}")
-
-        full_prompt_template = ChatPromptTemplate.from_messages(
-            [self.system_prompt, self.user_prompt]
-        )
-
 
         # falcon model
         model_name = "tiiuae/falcon-11B"
@@ -39,19 +30,8 @@ class LegalExpert:
                                    device_map="auto")
 
         print(f'Model {model_name} is set.')
-        # create llm pipeline for model
-        #model_name = "google/flan-t5-xl"
 
-        #self.huggingface_llm = pipeline("text-generation", model=model_name, tokenizer=tokenizer)
-        #print('Hugging face pipeline set.')
-        #self.openai_gpt4_llm = ChatOpenAI(temperature=0, max_tokens=256)
-        #self.chat = ChatAnthropic()
-
-        self.chain = full_prompt_template | self.falcon_llm
-
-        #self.chain = llm.LLMChain(llm=self.huggingface_llm, prompt=full_prompt_template)
-
-    def get_system_prompt(self):
+    def get_system_prompt(self, language, context):
         system_prompt = """
         You are a Canadian Legal Expert.
         Under no circumstances do you give legal advice.
@@ -67,18 +47,30 @@ class LegalExpert:
         return SystemMessagePromptTemplate.from_template(system_prompt)
 
     def run_chain(self, language, context, question):
-        return self.chain.invoke(
-            {'language':language, 'context':context, 'question':question}
+        # Create the user and system prompts
+        self.user_prompt = HumanMessagePromptTemplate.from_template('{question}')
+        self.system_prompt = self.get_system_prompt(language, context)
+
+        # Use ChatPromptTemplate to combine prompts
+        self.full_prompt_template = ChatPromptTemplate.from_messages(
+            [self.system_prompt, self.user_prompt]
         )
+
+        # Get the prompt string
+        prompt_value = self.full_prompt_template.invoke({'context': context, 'language': language, 'question': question})
+
+        # Pass the prompt string to the Falcon LLM and get the response
+        response = self.falcon_llm(str(prompt_value))
+        return response[0]['generated_text']  # Modify to extract the text from the Falcon pipeline output
 
 pdf_file_loc = "Legal documentation/Contract_of_PurchaseSale.pdf"
 
 def retrieve_pdf_text(pdf_file_loc):
 
-    pdf_file = PDFQuery("Legal documentation/Contract_of_PurchaseSale.pdf")
+    pdf_file = PDFQuery(pdf_file_loc)
     pdf_file.load()
     text_elements = pdf_file.pq('LTTextLineHorizontal')
-    return [t.text for t in text_elements if t.text.strip() != '']
+    return "".join([t.text for t in text_elements if t.text.strip() != ''])
 
 
 # create a streamlit app
@@ -86,19 +78,16 @@ print("Starting Document Explainer (that does not give advice)")
 
 machine_reader = LegalExpert()
 
-# create a upload file widget for a pdf
 
 
 language = input("1.French\n2.English\n")
 #question = input("Ask a question? ")
 question = 'what is about the document?'
 
-print(retrieve_pdf_text(pdf_file_loc))
-"""
+
 # run the model
 legal_response = machine_reader.run_chain(
     language=language, context=retrieve_pdf_text(pdf_file_loc), question=question
 )
 #Output the answer
 print(f"legal_response: {legal_response}")
-"""
