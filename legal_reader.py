@@ -34,6 +34,7 @@ class LegalExpert:
                                    tokenizer=tokenizer,
                                    torch_dtype=torch.float16,
                                    trust_remote_code=True,
+                                   is_decoder=True,
                                    device_map="auto")
 
 
