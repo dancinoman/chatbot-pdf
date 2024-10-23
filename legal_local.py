@@ -1,13 +1,14 @@
-from langchain_community.chat_models import ChatAnthropic, ChatOpenAI
-from langchain.chains import LLMChain
+from langchain_community.document_loaders.pdf import PyPDFLoader
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain_core.prompts.chat import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
-    AIMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+
+from langchain.indexes import VectorstoreIndexCreator
+from transformers import AutoTokenizer, pipeline
 import streamlit as st
 from pdfquery import PDFQuery
 import torch
@@ -59,6 +60,14 @@ class LegalExpert:
             {'language':language,'context':context, 'question':question}
         )
 
+def get_from_pdf_lang(pdf_location):
+    pdf_loader = PyPDFLoader(pdf_location)
+    text = pdf_loader.load()
+    embedding_model = HuggingFaceEmbeddings('mistralai/Mistral-7B-v0.1')
+    vector_store = FAISS.from_documents(documents=text, embedding=embedding_model)
+    index = VectorstoreIndexCreator()
+    return index
+
 
 def get_from_pdf(pdf_location):
     pdf_file = PDFQuery(pdf_location)
@@ -68,52 +77,59 @@ def get_from_pdf(pdf_location):
     return ''.join([t.text for t in text_elements if t.text.strip() != '' and t.text.strip().replace('_','') != ""])
 
 
-# create a streamlit app
-#st.title("Document Explainer (that does not give advice)")
 
-#if "LegalExpert" not in st.session_state:
-#    st.session_state.LegalExpert = LegalExpert()
-legal_expert = LegalExpert()
 
-# create a upload file widget for a pdf
-#pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
-context = get_from_pdf('pdf-documents/Intellectual Property Agreement.pdf')
 
-#st.session_state.context = None
-# if a pdf file is uploaded
-#if pdf_file:
-    # retrieve the text from the pdf
- #   if "context" not in st.session_state:
-  #      st.session_state.context = retrieve_pdf_text(pdf_file)
 
-# create a button that clears the context
-#if st.button("Clear context"):
-#    st.session_state.__delitem__("context")
-#    st.session_state.__delitem__("legal_response")
+def load_reader():
+    # create a streamlit app
+    #st.title("Document Explainer (that does not give advice)")
 
-# if there's context, proceed
-#if "context" in st.session_state:
-    # create a dropdown widget for the language
-#    language = st.selectbox("Language", ["English", "Français"])
-    # create a text input widget for a question
-#    question = st.text_input("Ask a question")
+    #if "LegalExpert" not in st.session_state:
+    #    st.session_state.LegalExpert = LegalExpert()
+    legal_expert = LegalExpert()
 
-language = 'English'
-question='When was made the document?'
-    # create a button to run the model
- #   if st.button("Run"):
-        # run the model
-#        legal_response = st.session_state.LegalExpert.run_chain(
-#            language=language, context=st.session_state.context, question=question
-#        )
-legal_response = legal_expert.run_chain(language=language, context=context, question=question)
-print(f"legal_response: {legal_response}")
-#        if "legal_response" not in st.session_state:
-#            st.session_state.legal_response = legal_response
+    # create a upload file widget for a pdf
+    #pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
+    context = get_from_pdf('pdf-documents/Intellectual Property Agreement.pdf')
 
-#        else:
-#            st.session_state.legal_response = legal_response
+    #st.session_state.context = None
+    # if a pdf file is uploaded
+    #if pdf_file:
+        # retrieve the text from the pdf
+    #   if "context" not in st.session_state:
+    #      st.session_state.context = retrieve_pdf_text(pdf_file)
 
-# display the response
-#if "legal_response" in st.session_state:
-#    st.write(st.session_state.legal_response)
+    # create a button that clears the context
+    #if st.button("Clear context"):
+    #    st.session_state.__delitem__("context")
+    #    st.session_state.__delitem__("legal_response")
+
+    # if there's context, proceed
+    #if "context" in st.session_state:
+        # create a dropdown widget for the language
+    #    language = st.selectbox("Language", ["English", "Français"])
+        # create a text input widget for a question
+    #    question = st.text_input("Ask a question")
+
+    language = 'English'
+    question='When was made the document?'
+        # create a button to run the model
+    #   if st.button("Run"):
+            # run the model
+    #        legal_response = st.session_state.LegalExpert.run_chain(
+    #            language=language, context=st.session_state.context, question=question
+    #        )
+    legal_response = legal_expert.run_chain(language=language, context=context, question=question)
+    print(f"legal_response: {legal_response}")
+    #        if "legal_response" not in st.session_state:
+    #            st.session_state.legal_response = legal_response
+
+    #        else:
+    #            st.session_state.legal_response = legal_response
+
+    # display the response
+    #if "legal_response" in st.session_state:
+    #    st.write(st.session_state.legal_response)
+
+print(get_from_pdf_lang('pdf-documents/Intellectual Property Agreement.pdf'))

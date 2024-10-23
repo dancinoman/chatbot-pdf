@@ -18,6 +18,7 @@ cryptography==43.0.1
 cssselect==1.2.0
 dataclasses-json==0.6.7
 exceptiongroup==1.2.2
+faiss-gpu==1.7.2
 filelock==3.16.1
 frozenlist==1.4.1
 fsspec==2024.9.0
@@ -79,7 +80,7 @@ pydantic-settings==2.5.2
 pydantic_core==2.23.4
 pydeck==0.9.1
 Pygments==2.18.0
-PyPDF2==3.0.1
+pypdf==5.0.1
 pyquery==2.0.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
