@@ -1,6 +1,7 @@
 from langchain_community.document_loaders.pdf import PyPDFLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain.schema import Document
 from langchain_core.prompts.chat import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
@@ -27,14 +28,15 @@ class LegalExpert:
 
         # mistralai model
         model_name = "mistralai/Mistral-7B-v0.1"
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+        tokenizer = AutoTokenizer.from_pretrained(model_name, device_map="auto", offload_folder="offload")
         self.llm = pipeline("text-generation",
                                    model=model_name,
                                    tokenizer=tokenizer,
                                    torch_dtype=torch.float16,
                                    trust_remote_code=True,
                                    is_decoder=True,
-                                   device='cuda:0')
+                                   device='cuda')
 
 
         # create llm pipeline for model
@@ -61,12 +63,54 @@ class LegalExpert:
         )
 
 def get_from_pdf_lang(pdf_location):
+    """pdf_loader = PyPDFLoader(pdf_location)
+    text = pdf_loader.load()
+    print(torch.cuda.is_available())  # Should return True if GPU is accessible
+    model_light = 'sentence-transformers/all-MiniLM-L6-v2'
+    embedding_model = HuggingFaceEmbeddings(model_name=model_light, model_kwargs={'device':'cuda'})
+
+    vector_store = FAISS.from_documents(documents=text, embedding=embedding_model)
+
+    index = VectorstoreIndexCreator(vector_store=vector_store, embedding=embedding_model)
+
+    return index.from_documents(documents=text)"""
+    # Load PDF and extract text
     pdf_loader = PyPDFLoader(pdf_location)
     text = pdf_loader.load()
-    embedding_model = HuggingFaceEmbeddings('mistralai/Mistral-7B-v0.1')
-    vector_store = FAISS.from_documents(documents=text, embedding=embedding_model)
-    index = VectorstoreIndexCreator()
+
+    # Debug: Check the structure of the loaded text
+    print("Loaded text structure:", text)
+
+    # Check if GPU is available
+    print(torch.cuda.is_available())  # Should return True if GPU is accessible
+
+    model_light = 'sentence-transformers/all-MiniLM-L6-v2'
+    embedding_model = HuggingFaceEmbeddings(model_name=model_light, model_kwargs={'device': 'cuda'})
+
+    # Prepare documents based on the loaded text structure
+    documents = []
+    if isinstance(text, list):
+        for doc in text:
+            if isinstance(doc, str):
+                documents.append(Document(page_content=doc))
+            elif hasattr(doc, 'page_content'):
+                documents.append(Document(page_content=doc.page_content, metadata=doc.metadata))
+            else:
+                print("Unknown document structure:", doc)
+    else:
+        print("Unexpected format for loaded text:", text)
+
+    # Create a FAISS vector store using documents and embedding model
+    vector_store = FAISS.from_documents(documents, embedding=embedding_model)
+
+    # Create an index using the vector store and embedding model
+    index_creator = VectorstoreIndexCreator(vectorstore=vector_store, embedding=embedding_model)
+
+    # Index the documents
+    index = index_creator.from_documents(documents)
+
     return index
+
 
 
 def get_from_pdf(pdf_location):
@@ -75,11 +119,6 @@ def get_from_pdf(pdf_location):
     text_elements = pdf_file.pq('LTTextLineHorizontal')
     # Cleaning the text
     return ''.join([t.text for t in text_elements if t.text.strip() != '' and t.text.strip().replace('_','') != ""])
-
-
-
-
-
 
 def load_reader():
     # create a streamlit app
