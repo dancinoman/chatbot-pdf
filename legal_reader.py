@@ -78,7 +78,7 @@ def retrieve_pdf_text(pdf_file):
 
 
 # create a streamlit app
-st.title("Document Explainer (that does not give advice)")
+st.title("Document Explainer")
 
 if "LegalExpert" not in st.session_state:
     st.session_state.LegalExpert = LegalExpert()

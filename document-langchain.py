@@ -14,14 +14,12 @@ from langchain import hub
 
 load_dotenv()
 
-
 def get_from_pdf(pdf_location):
     pdf_file = PDFQuery(pdf_location)
     pdf_file.load()
     text_elements = pdf_file.pq('LTTextLineHorizontal')
     # Cleaning the text
     return ''.join([t.text for t in text_elements if t.text.strip() != '' and t.text.strip().replace('_','') != ""])
-
 
 #document = get_from_pdf('pdf-documents/Contract_of_PurchaseSale.pdf')
 with open('pdf-documents/Contract.txt', 'r') as f:
