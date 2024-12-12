@@ -1,11 +1,15 @@
 import os
 from dotenv import load_dotenv
+from typing_extensions import List, TypedDict
 
 from pdfquery import PDFQuery
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.vectorstores import InMemoryVectorStore
+
+#from langchain_core.documents import Document # Uncomment for pdf usage
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
+from langgraph.graph import START, StateGraph
 from langchain import hub
 
 load_dotenv()
@@ -36,10 +40,28 @@ store = vector_store.add_texts(chunks)
 
 prompt = hub.pull("rlm/rag-prompt")
 
-user_question = input('Ask a question:')
-message = prompt.invoke({'context':'contract document', 'question': user_question}).to_messages()
+user_question = input('Ask anything:')
+#message = prompt.invoke({'context':'contract document', 'question': user_question}).to_messages()
 
-assert len(message) == 1
-print(message[0].content)
+class State(TypedDict):
+    question: str
+    context: str
+    answer: str
 
+def retrieve(state: State):
+    retrieve_text = vector_store.similarity_search(state['question'])
+    return {'context': retrieve_text}
+
+def generate(state: State):
+    text_content = contract_text
+    message = prompt.invoke({'question': state['question'], 'context': text_content})
+    response = llm.invoke(message)
+    return {'answer': response.content}
+
+graph_builder = StateGraph(State).add_sequence([retrieve, generate])
+graph_builder.add_edge(START, "retrieve")
+graph = graph_builder.compile()
+
+result = graph.invoke({"question": user_question})
+print(f'Answer: {result["answer"]}')
 #Continue the tutorial there https://python.langchain.com/docs/tutorials/rag/
