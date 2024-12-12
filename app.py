@@ -90,13 +90,14 @@ def main():
     Streamlit app entry point.
     """
     st.title("Document Question Answering")
+    st.write('### Upload your pdf document and then ask any question.')
     # Get text from uploaded PDF
     uploaded_file = st.file_uploader("Upload Contract PDF", type="pdf")
 
 
     if uploaded_file:
         document_text = get_from_pdf(uploaded_file)
-        user_question = st.text_input("Ask a question about your document:")
+        user_question = st.text_input("Question: ")
         if user_question:
             answer = process_and_answer(user_question, document_text)
             st.write(f"Answer: {answer}")
