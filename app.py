@@ -13,7 +13,10 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langgraph.graph import START, StateGraph
 from langchain import hub
 
-load_dotenv()
+
+GROQ_API_KEY = st.secrets['general']['GROQ_API_KEY']
+os.environ['LANGCHAIN_API_KEY'] = st.secrets['general']['LANGCHAIN_API_KEY']
+os.environ['LANGCHAIN_TRACING_V2'] = st.secrets['general']['LANGCHAIN_TRACING_V2']
 
 def get_from_pdf(pdf_file):
     """
@@ -52,7 +55,7 @@ def process_and_answer(question, document_text):
         chunks = text_splitter.split_text(document_text)
 
         # start embedding
-        llm = ChatGroq(model="llama3-8b-8192")
+        llm = ChatGroq(model="llama3-8b-8192", api_key=GROQ_API_KEY)
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
         vector_store = InMemoryVectorStore(embeddings)

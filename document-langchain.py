@@ -1,5 +1,3 @@
-import os
-from dotenv import load_dotenv
 from typing_extensions import List, TypedDict
 
 from pdfquery import PDFQuery
@@ -11,8 +9,6 @@ from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langgraph.graph import START, StateGraph
 from langchain import hub
-
-load_dotenv()
 
 def get_from_pdf(pdf_location):
     pdf_file = PDFQuery(pdf_location)
