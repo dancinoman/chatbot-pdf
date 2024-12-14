@@ -4,7 +4,6 @@ from typing_extensions import List, TypedDict
 
 import fitz
 import re
-from pdfquery import PDFQuery
 
 # Langchain libraries
 from langchain_text_splitters import RecursiveCharacterTextSplitter
