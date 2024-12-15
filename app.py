@@ -62,7 +62,7 @@ def build_main_page():
 
                 use_chat_box(True)
 
-                with st.spinner('Reading'):
+                with st.spinner('Searching'):
                     answer = mr.process_and_answer(user_input, document_text)
 
                 st.session_state.chat_history.append({'message':f"**AI**:'{answer}'"})
