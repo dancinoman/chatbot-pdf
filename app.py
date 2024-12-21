@@ -19,14 +19,13 @@ def build_main_page():
             st.markdown(st.session_state['chat_history'][-1]['message'])
 
     # Top of the page
-    st.title("Document Question Answering")
+    st.title("Doc Explainer")
     st.write('### Instructions')
     st.write("""
                 1. Upload your pdf file
                 2. Question AI about the Document
                 3. When ready to download results, close the document
              """)
-    # Get text from uploaded PDF
 
     # Bottom of the page
     uploaded_file = st.file_uploader("Upload Contract PDF", type="pdf")
