@@ -1,4 +1,5 @@
 # Doc Explainer
+## Application available on streamlit [Doc Explainer](https://document-explanation-ehowyxrs7ddcjfkg8abpm3.streamlit.app/)
 Read and explain PDF documents 
 1. Load the PDF document
 2. User Query and Clean Input
