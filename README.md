@@ -13,3 +13,21 @@ My Doc Explainer is an intelligent document search system designed to provide pr
 The system's core functionality revolves around understanding the nuances of natural language. When a query is submitted, Doc Explainer analyzes it to determine the user's intent.  It then searches the provided PDF, not just for keywords, but for the underlying concepts and relationships relevant to the query.  The system identifies the most pertinent passages and extracts the precise information needed to formulate a response.
 
 Crucially, Doc Explainer tailors its explanation to the specific nature of the query.  If the user asks a factual question, the system provides a direct answer supported by evidence from the document. This ensures that users receive not just answers, but clear, contextualized explanations that address their specific needs.
+
+```mermaid
+graph LR
+    A[User Query] --> B(Query Analysis & Intent Detection)
+    B --> C{PDF Document}
+    C --> D(Contextual Search & Information Extraction)
+    D --> E(Response Generation & Explanation)
+    E --> F[User Answer & Explanation]
+
+    subgraph " "
+        direction LR
+        C1[PDF Text] --> D
+        C2[PDF Structure] --> D
+    end
+
+    style B fill:#ccf,stroke:#888,stroke-width:2px
+    style D fill:#ccf,stroke:#888,stroke-width:2px
+    style E fill:#ccf,stroke:#888,stroke-width:2px
