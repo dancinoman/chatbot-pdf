@@ -1,12 +1,11 @@
 # Doc Explainer
 Read and explain PDF documents 
 1. Load the PDF document
-2. Parse text and clean
-3. Text is verctorized
-4. Question from user is analysed
-5. Search in document to answer the prompt
-6. Found and prepare human approach explanation
-7. Display the answer
+2. User Query and Clean Input
+3. Query Analysis & Intent Detection
+4. Contextual Search & Information Extraction
+5. Response Generation & Explanation
+6. AI Answer & Explanation
 
 Doc Explainer is an intelligent document search system designed to provide precise answers to user queries about PDF documents.  Unlike traditional keyword search, Doc Explainer understands the context and meaning of both the query and the PDF content.  It goes beyond simply finding matching words; it identifies the specific information within the document that directly addresses the user's question.
 
@@ -16,11 +15,12 @@ Crucially, Doc Explainer tailors its explanation to the specific nature of the q
 
 ```mermaid
 graph LR
-    A[User Query] --> B(Query Analysis & Intent Detection)
-    B --> C{PDF Document}
-    C --> D(Contextual Search & Information Extraction)
-    D --> E(Response Generation & Explanation)
-    E --> F[User Answer & Explanation]
+    A[Load PDF document] --> B(User Query and Clean Input)
+    B[User Query and Clean Input] --> C(Query Analysis & Intent Detection)
+    C --> D{PDF Document}
+    D --> E(Contextual Search & Information Extraction)
+    E --> F(Response Generation & Explanation)
+    F --> G[AI Answer & Explanation]
 
     subgraph " "
         direction LR
@@ -31,3 +31,16 @@ graph LR
     style B fill:#ccf,stroke:#888,stroke-width:2px
     style D fill:#ccf,stroke:#888,stroke-width:2px
     style E fill:#ccf,stroke:#888,stroke-width:2px
+
+    classDef readableText font-size:25px
+    class A readableText
+    class B readableText
+    class C readableText
+    class C1 readableText
+    class C2 readableText
+    class D readableText
+    class E readableText
+    class F readableText
+    class G readableText
+
+
