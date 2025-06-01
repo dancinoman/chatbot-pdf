@@ -67,6 +67,11 @@ def get_from_pdf(pdf_file):
         st.error("Load document failed. Try another one please.")
         return None
 
+def get_from_text(location):
+
+    with open(location, 'r') as f:
+       return f.read()
+
 def process_and_answer(question, document_text):
     """
     Processes the uploaded PDF, performs retrieval and generation steps,
@@ -105,8 +110,10 @@ def process_and_answer(question, document_text):
             return {'context': retrieve_text}
 
         def generate(state):
+            french_request = 'Répondez uniquement en français :'
+            french_question = french_request + state['question']
             text_content = state['context']
-            message = prompt.invoke({'question': state['question'], 'context': text_content})
+            message = prompt.invoke({'question': french_question, 'context': text_content})
             response = llm.invoke(message)
             return {'answer': response.content}
 
@@ -121,23 +128,14 @@ def process_and_answer(question, document_text):
 
 
 def main():
-    """
-    Streamlit app entry point.
-    """
-    st.title("Document Question Answering")
-    st.write('### Upload your pdf document and then ask any question.')
-    # Get text from uploaded PDF
-    uploaded_file = st.file_uploader("Upload Contract PDF", type="pdf")
+    user_question = input('Posez votre question:')
 
+    document_text = get_from_text('other-document/test_for_text.txt')
 
-    if uploaded_file:
-        document_text = get_from_pdf(uploaded_file)
-        user_question = st.text_input("Question: ")
-        if user_question:
-            answer = process_and_answer(user_question, document_text)
-            st.write(f"Answer: {answer}")
+    result = process_and_answer(user_question, document_text)
 
+    print(result)
 
 if __name__ == "__main__":
-    test = 'writting text'
+    # run for test
     main()
