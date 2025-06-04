@@ -7,123 +7,153 @@ from crewai import Agent, Task, Crew
 from crewai import LLM
 
 import os
-import streamlit as st
 import sys
-
-sys.setrecursionlimit(5000)
-# Loads model variables
-os.environ["GROQ_API_KEY"] =st.secrets['general']['GROQ_API_KEY']
-
-my_llm = LLM(
-    api_key=os.getenv("GROQ_API_KEY"),
-    model="groq/llama-3.3-70b-versatile"
-)
-
-# ## Agents
-
-# ### First agent
-planner = Agent(
-    role="Content Planner",
-    goal="Plan engaging and factually accurate content on {topic}",
-    backstory="You're working on planning a blog article "
-              "about the topic: {topic}."
-              "You collect information that helps the "
-              "audience learn something "
-              "and make informed decisions. "
-              "Your work is the basis for "
-              "the Content Writer to write an article on this topic.",
-    allow_delegation=False,
-	verbose=True,
-    llm=my_llm
-)
+import re
+import fitz
+import streamlit as st
 
 
-# ### Second agent
-writer = Agent(
-    role="Content Writer",
-    goal="Write insightful and factually accurate "
-         "opinion piece about the topic: {topic}",
-    backstory="You're working on a writing "
-              "a new opinion piece about the topic: {topic}. "
-              "You base your writing on the work of "
-              "the Content Planner, who provides an outline "
-              "and relevant context about the topic. ",
-    allow_delegation=False,
-    verbose=True,
-    llm=my_llm
-)
+def clean_text(text):
+    """
+    Cleans the extracted text from unwanted characters and extra spaces.
+
+    Args:
+        text: The extracted raw text from the PDF.
+
+    Returns:
+        str: The cleaned text.
+    """
+    # Remove non-printable characters (including newlines, tabs, etc.)
+    text = re.sub(r'\s+', ' ', text)  # Replace multiple whitespace with a single space
+    text = re.sub(r'[^\x20-\x7E]', '', text)  # Remove non-ASCII characters (optional, adjust as needed)
+
+    # Additional cleaning steps (e.g., removing page numbers, unwanted symbols)
+    text = text.replace('\n', ' ').replace('\r', '')  # Remove line breaks
+
+    # Strip leading and trailing spaces
+    text = text.strip()
+
+    return text
+
+def get_from_text(location):
+
+    with open(location, 'r') as f:
+       return f.read()
+    
+def get_from_pdf(pdf_file):
+    """
+    Extracts text from uploaded PDF using PyMuPDF.
+
+    Args:
+        pdf_file: A file object containing the uploaded PDF.
+
+    Returns:
+        str: The cleaned text extracted from the PDF.
+    """
+    try:
+        doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+        text = ""
+        page_text = ""
+        for page in doc:
+            page_text += page.get_text("text")
 
 
-# ### Third agent
-editor = Agent(
-    role="Editor",
-    goal="Edit a given blog post to align with "
-         "the writing style of the organization. ",
-    backstory="You are an editor who receives a blog post "
-              "from the Content Writer. "
-              "Your goal is to review the blog post ",
-    allow_delegation=False,
-    verbose=True,
-    llm=my_llm
-)
+        cleaned_text = clean_text(page_text)
+        text += cleaned_text
+        return text
+    except Exception as e:
+        st.error(e)
+        st.error("Load document failed. Try another one please.")
+        return None
+
+def model_run(query, document):
+    sys.setrecursionlimit(5000)
+    # Loads model variables
+    os.environ["GROQ_API_KEY"] =st.secrets['general']['GROQ_API_KEY']
+
+    my_llm = LLM(
+        api_key=os.getenv("GROQ_API_KEY"),
+        model="groq/llama-3.3-70b-versatile"
+    )
+
+    # ## Agents
+
+    # ### First agent
+    researcher = Agent(
+        role="Researcher",
+        goal="Research document by engaging to understand the query: {query}",
+        backstory="You search the most relevant information"
+                "about the query: {query}."
+                "You understand the context and intention"
+                "from the user to find the most relevant information"
+                "You bring as much information that is requested.",
+        allow_delegation=False,
+        verbose=True,
+        llm=my_llm
+    )
 
 
-# ## Tasks
-plan = Task(
-    description=(
-        "1. Prioritize the latest trends, key players, "
-            "and noteworthy news on {topic}.\n"
-        "2. Identify the target audience, considering "
-            "their interests and pain points.\n"
-        "3. Develop a detailed content outline including "
-            "an introduction, key points, and a call to action.\n"
-    ),
-    expected_output="A comprehensive content plan document "
-        "with an outline, audience analysis, ",
-    agent=planner,
-)
+    # ### Second agent
+    writer = Agent(
+        role="Content Writer",
+        goal="Write content to be concise and understandable",
+        backstory="You look at the {query} if there is any format requested"
+                "You're working on writing the response "
+                "for the user."
+                "You focus on facts with opinion free."
+                "You make sure that the response is understandable",
+        allow_delegation=False,
+        verbose=True,
+        llm=my_llm
+    )
 
-write = Task(
-    description=(
-        "1. Use the content plan to craft a compelling "
-            "blog post on {topic}.\n"
-        "2. Incorporate SEO keywords naturally.\n"
-		"3. Sections/Subtitles are properly named "
-            "in an engaging manner.\n"
-        "4. Ensure the post is structured with an "
-            "engaging introduction, insightful body, "
-            "and a summarizing conclusion.\n"
-        "5. Proofread for grammatical errors and "
-            "alignment with the brand's voice.\n"
-    ),
-    expected_output="A well-written blog post "
-        "in fully markdown format, ready for publication, "
-        "each section should have 2 or 3 paragraphs.",
-    agent=writer,
-)
+    # ## Tasks
+    seek = Task(
+        description=(
+            "1. Prioritize the information requested "
+                "on {query}.\n"
+            "2. Find this information in {document}\n"
+            "3. Formulate the content found concisely\n"
+        ),
+        expected_output="A comprehensive content, with all information",
+        agent=researcher,
+    )
 
-edit = Task(
-    description=("Proofread the given blog post for "
-                 "grammatical errors and "
-                 "alignment with the brand's voice."),
-    expected_output="A fully text markdown format, "
-                    "ready for publication, "
-                    "each section should have 2 or 3 paragraphs.",
-    agent=editor
-)
+    response = Task(
+        description=(
+            "1. Look at the {query} if there is any format requested.\n"
+            "2. Write the format requested that override by default concise content.\n"
+            "3. Correct any grammar errors.\n"
+        ),
+        expected_output="A well-written response for the user "
+            "in fully markdown format",
+        agent=writer,
+    )
 
-# ## Crew
-crew = Crew(
-    agents=[planner, writer, editor],
-    tasks=[plan, write, edit],
-    verbose=0
-)
+    # ## Crew
+    crew = Crew(
+        agents=[researcher, writer],
+        tasks=[seek, response],
+        verbose=1
+    )
 
-result = crew.kickoff(inputs={"topic": "step mother stuck in dryer machine"})
+    result = crew.kickoff(inputs={"query": query,
+                                  "document" : document
+    })
 
 
-from IPython.display import Markdown
-Markdown(result.raw)
+    from IPython.display import Markdown
+    Markdown(result.raw)
 
+def main():
+    user_question = input('Posez votre question:')
 
-# In[ ]:
+    document_text = get_from_text('other-document/test_for_text.txt')
+
+    result = model_run(user_question, document_text)
+
+    print(result)
+
+if __name__ == "__main__":
+    # run for test
+    main()
