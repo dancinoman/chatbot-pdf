@@ -1,16 +1,20 @@
+import os
+import sys
+import pysqlite3
+import re
+import fitz
+import streamlit as st
 
 # Warning control
 import warnings
 warnings.filterwarnings('ignore')
 
+sys.modules["sqlite3"] = sys.modules["pysqlite3"]
+
 from crewai import Agent, Task, Crew
 from crewai import LLM
 
-import os
-import sys
-import re
-import fitz
-import streamlit as st
+
 
 
 def clean_text(text):
