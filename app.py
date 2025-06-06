@@ -28,7 +28,7 @@ def build_main_page():
              """)
 
     # Bottom of the page
-    uploaded_file = st.file_uploader("Upload Contract PDF", type="pdf")
+    uploaded_file = st.file_uploader("Upload PDF", type="pdf")
 
     # Manage the reset state for new uploaded PDF
     if "chat_history" in st.session_state:

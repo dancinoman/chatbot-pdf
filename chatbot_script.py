@@ -4,6 +4,7 @@ import pysqlite3
 import re
 import fitz
 import streamlit as st
+#from IPython.display import Markdown
 
 # Warning control
 import warnings
@@ -43,7 +44,7 @@ def get_from_text(location):
 
     with open(location, 'r') as f:
        return f.read()
-    
+
 def get_from_pdf(pdf_file):
     """
     Extracts text from uploaded PDF using PyMuPDF.
@@ -60,8 +61,6 @@ def get_from_pdf(pdf_file):
         page_text = ""
         for page in doc:
             page_text += page.get_text("text")
-
-
         cleaned_text = clean_text(page_text)
         text += cleaned_text
         return text
@@ -86,11 +85,11 @@ def model_run(query, document):
     researcher = Agent(
         role="Researcher",
         goal="Research document by engaging to understand the query: {query}",
-        backstory="You search the most relevant information"
-                "about the query: {query}."
-                "You understand the context and intention"
-                "from the user to find the most relevant information"
-                "You bring as much information that is requested.",
+        backstory="""You search the most relevant information
+                about the query: {query}.
+                You understand the context and intention"
+                from the user to find the most relevant information"
+                You bring as much information that is requested.""",
         allow_delegation=False,
         verbose=True,
         llm=my_llm
@@ -101,15 +100,16 @@ def model_run(query, document):
     writer = Agent(
         role="Content Writer",
         goal="Write content to be concise and understandable",
-        backstory="You look at the {query} if there is any format requested"
-                "You're working on writing the response "
-                "for the user."
-                "You focus on facts with opinion free."
-                "You make sure that the response is understandable",
+        backstory="""You look at the {query} if there is any format requested
+                You're working on writing the response
+                for the user.
+                You focus on facts with opinion free.
+                You make sure that the response is understandable""",
         allow_delegation=False,
         verbose=True,
         llm=my_llm
     )
+
 
     # ## Tasks
     seek = Task(
@@ -117,7 +117,7 @@ def model_run(query, document):
             "1. Prioritize the information requested "
                 "on {query}.\n"
             "2. Find this information in {document}\n"
-            "3. Formulate the content found concisely\n"
+            "3. Formulate the content found by few lines\n"
         ),
         expected_output="A comprehensive content, with all information",
         agent=researcher,
@@ -126,10 +126,10 @@ def model_run(query, document):
     response = Task(
         description=(
             "1. Look at the {query} if there is any format requested.\n"
-            "2. Write the format requested that override by default concise content.\n"
+            "2. Write format requested otherwise few lines.\n"
             "3. Correct any grammar errors.\n"
         ),
-        expected_output="A well-written response for the user "
+        expected_output="A response for the user with maximum 3 lines."
             "in fully markdown format",
         agent=writer,
     )
@@ -145,14 +145,13 @@ def model_run(query, document):
                                   "document" : document
     })
 
-
-    from IPython.display import Markdown
-    Markdown(result.raw)
+    return result.raw
 
 def main():
     user_question = input('Posez votre question:')
 
-    document_text = get_from_text('other-document/test_for_text.txt')
+    with open("pdf-documents/Contract_of_PurchaseSale.pdf", "rb") as f:
+        document_text = get_from_pdf(f)
 
     result = model_run(user_question, document_text)
 
