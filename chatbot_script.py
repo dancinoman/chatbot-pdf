@@ -15,7 +15,8 @@ sys.modules["sqlite3"] = sys.modules["pysqlite3"]
 from crewai import Agent, Task, Crew
 from crewai import LLM
 
-
+GROQ_API_KEY = st.secrets['general']['GROQ_API_KEY']
+MODEL_USED = "groq/llama-3.3-70b-versatile"
 
 
 def clean_text(text):
@@ -72,11 +73,11 @@ def get_from_pdf(pdf_file):
 def model_run(query, document):
     sys.setrecursionlimit(5000)
     # Loads model variables
-    os.environ["GROQ_API_KEY"] =st.secrets['general']['GROQ_API_KEY']
+    os.environ["GROQ_API_KEY"]=GROQ_API_KEY
 
     my_llm = LLM(
         api_key=os.getenv("GROQ_API_KEY"),
-        model="groq/llama-3.3-70b-versatile"
+        model=MODEL_USED
     )
 
     # ## Agents
@@ -100,11 +101,13 @@ def model_run(query, document):
     writer = Agent(
         role="Content Writer",
         goal="Write content to be concise and understandable",
-        backstory="""You look at the {query} if there is any format requested
+        backstory=
+        """You look at the {query} if there is any format requested
                 You're working on writing the response
                 for the user.
                 You focus on facts with opinion free.
-                You make sure that the response is understandable""",
+                You make sure that the response is understandable"""
+                ,
         allow_delegation=False,
         verbose=True,
         llm=my_llm
@@ -129,7 +132,7 @@ def model_run(query, document):
             "2. Write format requested otherwise few lines.\n"
             "3. Correct any grammar errors.\n"
         ),
-        expected_output="A response for the user with maximum 3 lines."
+        expected_output="Priority on the prompt instruction(s) otherwise maximum 3 sentences."
             "in fully markdown format",
         agent=writer,
     )
@@ -145,17 +148,17 @@ def model_run(query, document):
                                   "document" : document
     })
 
-    return result.raw
+    return result
 
 def main():
     user_question = input('Posez votre question:')
 
-    with open("pdf-documents/Contract_of_PurchaseSale.pdf", "rb") as f:
+    with open("pdf-documents/CHA23131 Call of Cthulhu 7th Edition Quick-Start Rules.pdf", "rb") as f:
         document_text = get_from_pdf(f)
 
     result = model_run(user_question, document_text)
 
-    print(result)
+    print(f"From the model {MODEL_USED} here is the answer \n",result.raw)
 
 if __name__ == "__main__":
     # run for test
