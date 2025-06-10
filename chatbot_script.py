@@ -6,6 +6,8 @@ import fitz
 import streamlit as st
 #from IPython.display import Markdown
 
+import tiktoken
+
 # Warning control
 import warnings
 warnings.filterwarnings('ignore')
@@ -17,7 +19,7 @@ from crewai import LLM
 
 GROQ_API_KEY = st.secrets['general']['GROQ_API_KEY']
 MODEL_USED = "groq/llama-3.3-70b-versatile"
-
+FILE_LOCATION = "pdf-documents/Contract_of_PurchaseSale.pdf"
 
 def clean_text(text):
     """
@@ -150,11 +152,21 @@ def model_run(query, document):
 
     return result
 
-def main():
-    user_question = input('Posez votre question:')
+def estimate_tokens(text):
+    """Estimates the number of tokens in a given text."""
+    enc = tiktoken.get_encoding("cl100k_base")
+    return len(enc.encode(text))
 
+def main():
     with open("pdf-documents/CHA23131 Call of Cthulhu 7th Edition Quick-Start Rules.pdf", "rb") as f:
         document_text = get_from_pdf(f)
+    print(type(document_text))
+    print(f"Welcome to RAG with this model { MODEL_USED }")
+    print(f"He is going to investigate the document {FILE_LOCATION} to answer your question")
+    print(f"Number of tokens approximately in the document: {estimate_tokens(document_text)}")
+    user_question = input('Posez votre question:')
+
+
 
     result = model_run(user_question, document_text)
 
