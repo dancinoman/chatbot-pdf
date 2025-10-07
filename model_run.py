@@ -87,7 +87,7 @@ def process_and_answer(question, document_text):
         chunks = text_splitter.split_text(document_text)
 
         # start embedding
-        llm = ChatGroq(model="llama3-8b-8192", api_key=GROQ_API_KEY)
+        llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=GROQ_API_KEY)
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
         vector_store = InMemoryVectorStore(embeddings)
