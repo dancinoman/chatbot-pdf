@@ -34,7 +34,7 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
-env:
-  LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
-  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-  LANGCHAIN_TRACING_V2: ${{ secrets.LANGCHAIN_TRACING_V2 }}
+#env:
+#  LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+#  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+#  LANGCHAIN_TRACING_V2: ${{ secrets.LANGCHAIN_TRACING_V2 }}
