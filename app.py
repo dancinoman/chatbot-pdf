@@ -23,8 +23,8 @@ def build_main_page():
     st.write('### Instructions')
     st.write("""
                 1. Upload your pdf file
-                2. Question AI about the Document
-                3. When ready to download results, close the document
+                2. Ask any question about the document uploaded.
+                3. You can download the results when it is done.
              """)
 
     # Bottom of the page
